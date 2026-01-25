@@ -14,10 +14,11 @@
 | 🥈 | **sonic** | 872 ns/op | 1,828 B/op | 16 allocs/op | 1.5x 慢 |
 | 🥉 | **json-iterator** | 1,161 ns/op | 1,480 B/op | 37 allocs/op | 2.0x 慢 |
 | 4 | **go-json** | 1,163 ns/op | 1,537 B/op | 34 allocs/op | 2.0x 慢 |
-| 5 | **标准库** | 1,779 ns/op | 1,528 B/op | 31 allocs/op | 3.1x 慢 |
-| 6 | **segmentio** | 1,703 ns/op | 5,912 B/op | 22 allocs/op | 2.9x 慢 |
-| 7 | **yyjson优化** | 3,828 ns/op | 404 B/op | 19 allocs/op | 6.6x 慢 |
-| 8 | **yyjson原始** | 3,489 ns/op | 1,396 B/op | 25 allocs/op | 6.0x 慢 |
+| 5 | **fastjson** | 1,014 ns/op | 3,024 B/op | 14 allocs/op | 1.8x 慢 |
+| 6 | **标准库** | 1,779 ns/op | 1,528 B/op | 31 allocs/op | 3.1x 慢 |
+| 7 | **segmentio** | 1,703 ns/op | 5,912 B/op | 22 allocs/op | 2.9x 慢 |
+| 8 | **yyjson优化** | 3,828 ns/op | 404 B/op | 19 allocs/op | 6.6x 慢 |
+| 9 | **yyjson原始** | 3,489 ns/op | 1,396 B/op | 25 allocs/op | 6.0x 慢 |
 
 ## 大JSON性能测试结果 (~4.5KB)
 
@@ -25,18 +26,20 @@
 |------|-----|------|----------|----------|----------|
 | 🥇 | **gjson** | 4,287 ns/op | 0 B/op | 0 allocs/op | **基准** |
 | 🥈 | **sonic** | 10,307 ns/op | 19,044 B/op | 78 allocs/op | 2.4x 慢 |
-| 🥉 | **go-json** | 21,178 ns/op | 23,107 B/op | 517 allocs/op | 4.9x 慢 |
-| 4 | **json-iterator** | 21,363 ns/op | 19,278 B/op | 578 allocs/op | 5.0x 慢 |
-| 5 | **segmentio** | 26,581 ns/op | 21,496 B/op | 392 allocs/op | 6.2x 慢 |
-| 6 | **标准库** | 33,500 ns/op | 16,992 B/op | 459 allocs/op | 7.8x 慢 |
-| 7 | **yyjson原始** | 55,911 ns/op | 21,504 B/op | 414 allocs/op | 13.0x 慢 |
-| 8 | **yyjson优化** | 64,852 ns/op | 7,792 B/op | 368 allocs/op | 15.1x 慢 |
+| 🥉 | **fastjson** | 12,766 ns/op | 37,176 B/op | 138 allocs/op | 3.0x 慢 |
+| 4 | **go-json** | 21,178 ns/op | 23,107 B/op | 517 allocs/op | 4.9x 慢 |
+| 5 | **json-iterator** | 21,363 ns/op | 19,278 B/op | 578 allocs/op | 5.0x 慢 |
+| 6 | **segmentio** | 26,581 ns/op | 21,496 B/op | 392 allocs/op | 6.2x 慢 |
+| 7 | **标准库** | 33,500 ns/op | 16,992 B/op | 459 allocs/op | 7.8x 慢 |
+| 8 | **yyjson原始** | 55,911 ns/op | 21,504 B/op | 414 allocs/op | 13.0x 慢 |
+| 9 | **yyjson优化** | 64,852 ns/op | 7,792 B/op | 368 allocs/op | 15.1x 慢 |
 
 ## 关键发现
 
 ### 🏆 性能之王
-- **gjson**在所有测试中都表现最佳，但需要注意的是它主要用于查询场景，不是完整的unmarshal
+- **gjson**在所有测试中都表现最佳，零内存分配，查询场景无敌
 - **sonic**在完整unmarshal库中表现最好，比标准库快2-3倍
+- **fastjson**在完整解析后多次访问场景下有优势，但整体仍比gjson和sonic慢
 
 ### 💡 内存效率
 - **yyjson优化版**内存分配最少（404B），但速度最慢
@@ -66,7 +69,7 @@
 - **sonic** - JIT编译 + SIMD，最佳unmarshal性能
 
 ### 2. 查询密集场景  
-- **gjson** - 零分配查询，但需适配API
+- **gjson** - 零分配极速，查询场景无敌
 
 ### 3. 兼容性要求高
 - **标准库** - 最稳定，完全兼容
